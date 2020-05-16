@@ -1,5 +1,6 @@
 package com.example.newsreader;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
@@ -7,6 +8,9 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -35,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         articlesDB = this.openOrCreateDatabase("Articles", MODE_PRIVATE, null);
         articlesDB.execSQL("CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY, articleId, INTEGER, title VARCHAR, content VARCHAR)");
-        updateListView();
+
         DownloadTask task = new DownloadTask();
         try {
             task.execute("https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty");
@@ -47,7 +51,16 @@ public class MainActivity extends AppCompatActivity {
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1,titles);
         listView.setAdapter(arrayAdapter);
 
+        listView.setOnLongClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
+                intent.putExtra("content", contents.get(position));
 
+                startActivity(intent);
+            }
+        });
+        updateListView();
     }
 
     public void updateListView () {
@@ -63,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             do {
                 titles.add(c.getString(titleIndex));
                 contents.add(c.getString(contentIndex));
-            } while (c.moveToFirst());
+            } while (c.moveToNext());
 
             arrayAdapter.notifyDataSetChanged();
         }
